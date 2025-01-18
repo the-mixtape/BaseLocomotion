@@ -30,6 +30,68 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+protected:
+	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode) override;
+	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+#pragma region Input
+public:
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "BaseLocomotion|Input")
+	void ForwardMovementAction(float Value);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "BaseLocomotion|Input")
+	void RightMovementAction(float Value);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "BaseLocomotion|Input")
+	void CameraUpAction(float Value);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "BaseLocomotion|Input")
+	void CameraRightAction(float Value);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "BaseLocomotion|Input")
+	void JumpAction(bool bValue);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "BaseLocomotion|Input")
+	void SprintAction(bool bValue);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "BaseLocomotion|Input")
+	void AimAction(bool bValue);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "BaseLocomotion|Input")
+	void StanceAction();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "BaseLocomotion|Input")
+	void WalkAction();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "BaseLocomotion|Input")
+	void VelocityDirectionAction();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "BaseLocomotion|Input")
+	void LookingDirectionAction();
+	
+	UFUNCTION(BlueprintSetter, Category = "BaseLocomotion|Input")
+	void SetDesiredRotationMode(EBSRotationMode NewRotMode);
+
+	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "BaseLocomotion|Character States")
+	void Server_SetDesiredRotationMode(EBSRotationMode NewRotMode);
+	
+	UFUNCTION(BlueprintPure, Category = "BaseLocomotion|Character States")
+	EBSGait GetDesiredGait() const { return DesiredGait; }
+	
+	UFUNCTION(BlueprintCallable, Category = "BaseLocomotion|Character States")
+	void SetDesiredGait(EBSGait NewGait);
+
+	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "BaseLocomotion|Character States")
+	void Server_SetDesiredGait(EBSGait NewGait);
+
+	UFUNCTION(BlueprintSetter, Category = "BaseLocomotion|Input")
+	void SetDesiredStance(EBSStance NewStance);
+
+	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "BaseLocomotion|Input")
+	void Server_SetDesiredStance(EBSStance NewStance);
+	
+#pragma endregion
+	
 #pragma region CharacterStates
 public:
 	UFUNCTION(BlueprintCallable, Category = "BaseLocomotion|Character States")
@@ -104,16 +166,29 @@ protected:
 	void OnRep_RotationMode(EBSRotationMode PrevRotMode);
 #pragma endregion
 
+#pragma region Utility
+public:
+	UFUNCTION(BlueprintCallable, Category = "ALS|Utility")
+	float GetAnimCurveValue(FName CurveName) const;
+#pragma endregion
+	
 #pragma region Utils 
 protected:
+	void SmoothCharacterRotation(FRotator Target, float TargetInterpSpeed, float ActorInterpSpeed, float DeltaTime);
 	void SetMovementModel();
 	void ForceUpdateCharacterState();
+	float CalculateGroundedRotationRate() const;
 #pragma endregion
 
 private:
 	virtual void OnGaitChanged(EBSGait PreviousGait);
 	virtual void OnStanceChanged(EBSStance PreviousStance);
 	virtual void OnMovementStateChanged(EBSMovementState PreviousState);
+	
+	void SetEssentialValues(float DeltaTime);
+	void UpdateCharacterMovement();
+	void UpdateGroundedRotation(float DeltaTime);
+	void UpdateInAirRotation(float DeltaTime);
 	
 protected:
 	/* Custom movement component*/
@@ -129,6 +204,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "BaseLocomotion|Input")
 	EBSStance DesiredStance = EBSStance::Standing;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "BaseLocomotion|Input", BlueprintReadOnly)
+	float LookUpDownRate = 1.25f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "BaseLocomotion|Input", BlueprintReadOnly)
+	float LookLeftRightRate = 1.25f;
 	
 	/** Movement System */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BaseLocomotion|Movement System")
@@ -149,12 +230,58 @@ protected:
 
 	/** Essential Information */
 	UPROPERTY(BlueprintReadOnly, Category = "BaseLocomotion|Essential Information")
+	FVector Acceleration = FVector::ZeroVector;
+
+	UPROPERTY(BlueprintReadOnly, Category = "BaseLocomotion|Essential Information")
+	bool bIsMoving = false;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "BaseLocomotion|Essential Information")
+	bool bHasMovementInput = false;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "BaseLocomotion|Essential Information")
 	FRotator LastVelocityRotation;
 
 	UPROPERTY(BlueprintReadOnly, Category = "BaseLocomotion|Essential Information")
 	FRotator LastMovementInputRotation;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "BaseLocomotion|Essential Information")
+	float Speed = 0.0f;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "BaseLocomotion|Essential Information")
+	float MovementInputAmount = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "BaseLocomotion|Essential Information")
+	float AimYawRate = 0.0f;
+	
+	/** Replicated Essential Information*/
+	UPROPERTY(BlueprintReadOnly, Category = "BaseLocomotion|Essential Information")
+	float EasedMaxAcceleration = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "BaseLocomotion|Essential Information")
+	FVector ReplicatedCurrentAcceleration = FVector::ZeroVector;
+
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "BaseLocomotion|Essential Information")
+	FRotator ReplicatedControlRotation = FRotator::ZeroRotator;
+	
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "BaseLocomotion|Movement System")
 	FBSMovementSettings GetTargetMovementSettings() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "BaseLocomotion|Movement System")
+	EBSGait GetAllowedGait() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "BaseLocomotion|Movement System")
+	EBSGait GetActualGait(EBSGait AllowedGait) const;
+	
+	UFUNCTION(BlueprintCallable, Category = "BaseLocomotion|Movement System")
+	bool CanSprint() const;
+
+protected:
+	/** Cached Variables */
+	FVector PreviousVelocity = FVector::ZeroVector;
+	float PreviousAimYaw = 0.0f;
+	
+	/* Smooth out aiming by interping control rotation*/
+	FRotator AimingRotation = FRotator::ZeroRotator;
 };

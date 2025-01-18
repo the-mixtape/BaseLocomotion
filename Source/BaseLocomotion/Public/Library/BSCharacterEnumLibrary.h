@@ -15,9 +15,7 @@ enum class EBSMovementState : uint8
 {
 	None,
 	Grounded,
-	InAir,
-	Mantling,
-	Ragdoll
+	InAir
 };
 
 
