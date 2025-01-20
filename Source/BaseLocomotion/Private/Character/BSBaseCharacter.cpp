@@ -163,15 +163,15 @@ void ABSBaseCharacter::JumpAction_Implementation(bool bValue)
 	// TODO: Jump Logic
 }
 
-void ABSBaseCharacter::SprintAction_Implementation(bool bValue)
+void ABSBaseCharacter::RunAction_Implementation(bool bValue)
 {
 	if (bValue)
 	{
-		SetDesiredGait(EBSGait::Sprinting);
+		SetDesiredGait(EBSGait::Running);
 	}
 	else
 	{
-		SetDesiredGait(EBSGait::Running);
+		SetDesiredGait(EBSGait::Walking);
 	}
 }
 
@@ -205,18 +205,6 @@ void ABSBaseCharacter::StanceAction_Implementation()
 			SetDesiredStance(EBSStance::Standing);
 			UnCrouch();
 		}
-	}
-}
-
-void ABSBaseCharacter::WalkAction_Implementation()
-{
-	if (DesiredGait == EBSGait::Walking)
-	{
-		SetDesiredGait(EBSGait::Running);
-	}
-	else if (DesiredGait == EBSGait::Running)
-	{
-		SetDesiredGait(EBSGait::Walking);
 	}
 }
 
@@ -528,17 +516,9 @@ void ABSBaseCharacter::UpdateGroundedRotation(float DeltaTime)
 	else if (RotationMode == EBSRotationMode::LookingDirection)
 	{
 		// Looking Direction Rotation
-		float YawValue;
-		if (Gait == EBSGait::Sprinting)
-		{
-			YawValue = LastVelocityRotation.Yaw;
-		}
-		else
-		{
-			// Walking or Running..
-			const float YawOffsetCurveVal = GetAnimCurveValue(NAME_YawOffset);
-			YawValue = AimingRotation.Yaw + YawOffsetCurveVal;
-		}
+		const float YawOffsetCurveVal = GetAnimCurveValue(NAME_YawOffset);
+		const float YawValue = AimingRotation.Yaw + YawOffsetCurveVal;
+		
 		SmoothCharacterRotation({0.0f, YawValue, 0.0f}, 500.0f, GroundedRotationRate, DeltaTime);
 	}
 	else if (RotationMode == EBSRotationMode::Aiming)
@@ -611,23 +591,17 @@ EBSGait ABSBaseCharacter::GetAllowedGait() const
 
 	if (Stance == EBSStance::Standing)
 	{
-		if (RotationMode != EBSRotationMode::Aiming)
+		if (RotationMode == EBSRotationMode::Aiming)
 		{
-			if (DesiredGait == EBSGait::Sprinting)
-			{
-				return CanSprint() ? EBSGait::Sprinting : EBSGait::Running;
-			}
-			return DesiredGait;
+			return EBSGait::Walking;
+		}
+		
+		if (DesiredGait == EBSGait::Running)
+		{
+			return CanRun() ? EBSGait::Running : EBSGait::Walking;
 		}
 	}
-
-	// Crouching stance & Aiming rot mode has same behaviour
-
-	if (DesiredGait == EBSGait::Sprinting)
-	{
-		return EBSGait::Running;
-	}
-
+	
 	return DesiredGait;
 }
 
@@ -638,16 +612,7 @@ EBSGait ABSBaseCharacter::GetActualGait(EBSGait AllowedGait) const
 	// the Actual gait will still be running until the character decelerates to the walking speed.
 
 	const float LocWalkSpeed = MyCharacterMovementComponent->CurrentMovementSettings.WalkSpeed;
-	const float LocRunSpeed = MyCharacterMovementComponent->CurrentMovementSettings.RunSpeed;
-
-	if (Speed > LocRunSpeed + 10.0f)
-	{
-		if (AllowedGait == EBSGait::Sprinting)
-		{
-			return EBSGait::Sprinting;
-		}
-		return EBSGait::Running;
-	}
+	// const float LocRunSpeed = MyCharacterMovementComponent->CurrentMovementSettings.RunSpeed;
 
 	if (Speed >= LocWalkSpeed + 10.0f)
 	{
@@ -657,10 +622,10 @@ EBSGait ABSBaseCharacter::GetActualGait(EBSGait AllowedGait) const
 	return EBSGait::Walking;
 }
 
-bool ABSBaseCharacter::CanSprint() const
+bool ABSBaseCharacter::CanRun() const
 {
-	// Determine if the character is currently able to sprint based on the Rotation mode and current acceleration
-	// (input) rotation. If the character is in the Looking Rotation mode, only allow sprinting if there is full
+	// Determine if the character is currently able to run based on the Rotation mode and current acceleration
+	// (input) rotation. If the character is in the Looking Rotation mode, only allow running if there is full
 	// movement input and it is faced forward relative to the camera + or - 50 degrees.
 
 	if (!bHasMovementInput || RotationMode == EBSRotationMode::Aiming)

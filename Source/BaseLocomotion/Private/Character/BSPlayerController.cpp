@@ -128,11 +128,11 @@ void ABSPlayerController::JumpAction(const FInputActionValue& Value)
 	}
 }
 
-void ABSPlayerController::SprintAction(const FInputActionValue& Value)
+void ABSPlayerController::RunAction(const FInputActionValue& Value)
 {
 	if (PossessedCharacter)
 	{
-		PossessedCharacter->SprintAction(Value.Get<bool>());
+		PossessedCharacter->RunAction(Value.Get<bool>());
 	}
 }
 
@@ -149,14 +149,6 @@ void ABSPlayerController::StanceAction(const FInputActionValue& Value)
 	if (PossessedCharacter && Value.Get<bool>())
 	{
 		PossessedCharacter->StanceAction();
-	}
-}
-
-void ABSPlayerController::WalkAction(const FInputActionValue& Value)
-{
-	if (PossessedCharacter && Value.Get<bool>())
-	{
-		PossessedCharacter->WalkAction();
 	}
 }
 

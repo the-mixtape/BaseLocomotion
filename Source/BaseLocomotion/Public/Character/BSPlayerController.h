@@ -42,16 +42,13 @@ protected:
 	void JumpAction(const FInputActionValue& Value);
 
 	UFUNCTION()
-	void SprintAction(const FInputActionValue& Value);
+	void RunAction(const FInputActionValue& Value);
 
 	UFUNCTION()
 	void AimAction(const FInputActionValue& Value);
 
 	UFUNCTION()
 	void StanceAction(const FInputActionValue& Value);
-
-	UFUNCTION()
-	void WalkAction(const FInputActionValue& Value);
 
 	UFUNCTION()
 	void VelocityDirectionAction(const FInputActionValue& Value);

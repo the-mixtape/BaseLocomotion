@@ -52,16 +52,13 @@ public:
 	void JumpAction(bool bValue);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "BaseLocomotion|Input")
-	void SprintAction(bool bValue);
+	void RunAction(bool bValue);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "BaseLocomotion|Input")
 	void AimAction(bool bValue);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "BaseLocomotion|Input")
 	void StanceAction();
-
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "BaseLocomotion|Input")
-	void WalkAction();
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "BaseLocomotion|Input")
 	void VelocityDirectionAction();
@@ -200,7 +197,7 @@ protected:
 	EBSRotationMode DesiredRotationMode = EBSRotationMode::LookingDirection;
 
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadWrite, Category = "BaseLocomotion|Input")
-	EBSGait DesiredGait = EBSGait::Running;
+	EBSGait DesiredGait = EBSGait::Walking;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "BaseLocomotion|Input")
 	EBSStance DesiredStance = EBSStance::Standing;
@@ -262,7 +259,6 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "BaseLocomotion|Essential Information")
 	FRotator ReplicatedControlRotation = FRotator::ZeroRotator;
-	
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "BaseLocomotion|Movement System")
@@ -275,7 +271,7 @@ public:
 	EBSGait GetActualGait(EBSGait AllowedGait) const;
 	
 	UFUNCTION(BlueprintCallable, Category = "BaseLocomotion|Movement System")
-	bool CanSprint() const;
+	bool CanRun() const;
 
 protected:
 	/** Cached Variables */

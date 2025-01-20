@@ -23,9 +23,6 @@ struct FBSMovementSettings
 	float RunSpeed = 0.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Movement Settings")
-	float SprintSpeed = 0.0f;
-
-	UPROPERTY(EditAnywhere, Category = "Movement Settings")
 	TObjectPtr<UCurveVector> MovementCurve = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Movement Settings")
@@ -37,8 +34,6 @@ struct FBSMovementSettings
 		{
 		case EBSGait::Running:
 			return RunSpeed;
-		case EBSGait::Sprinting:
-			return SprintSpeed;
 		case EBSGait::Walking:
 			return WalkSpeed;
 		default:

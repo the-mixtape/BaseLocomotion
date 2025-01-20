@@ -38,8 +38,7 @@ UENUM(BlueprintType, meta = (ScriptName = "BS_Gait"))
 enum class EBSGait : uint8
 {
 	Walking,
-	Running,
-	Sprinting
+	Running
 };
 
 
