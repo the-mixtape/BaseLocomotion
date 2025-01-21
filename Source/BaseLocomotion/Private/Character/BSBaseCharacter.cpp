@@ -588,18 +588,15 @@ EBSGait ABSBaseCharacter::GetAllowedGait() const
 	// Calculate the Allowed Gait. This represents the maximum Gait the character is currently allowed to be in,
 	// and can be determined by the desired gait, the rotation mode, the stance, etc. For example,
 	// if you wanted to force the character into a walking state while indoors, this could be done here.
-
-	if (Stance == EBSStance::Standing)
+	
+	if (RotationMode == EBSRotationMode::Aiming)
 	{
-		if (RotationMode == EBSRotationMode::Aiming)
-		{
-			return EBSGait::Walking;
-		}
-		
-		if (DesiredGait == EBSGait::Running)
-		{
-			return CanRun() ? EBSGait::Running : EBSGait::Walking;
-		}
+		return EBSGait::Walking;
+	}
+	
+	if (DesiredGait == EBSGait::Running)
+	{
+		return CanRun() ? EBSGait::Running : EBSGait::Walking;
 	}
 	
 	return DesiredGait;
@@ -614,7 +611,7 @@ EBSGait ABSBaseCharacter::GetActualGait(EBSGait AllowedGait) const
 	const float LocWalkSpeed = MyCharacterMovementComponent->CurrentMovementSettings.WalkSpeed;
 	// const float LocRunSpeed = MyCharacterMovementComponent->CurrentMovementSettings.RunSpeed;
 
-	if (Speed >= LocWalkSpeed + 10.0f)
+	if (Speed >= LocWalkSpeed + 10.0f && AllowedGait == EBSGait::Running)
 	{
 		return EBSGait::Running;
 	}
