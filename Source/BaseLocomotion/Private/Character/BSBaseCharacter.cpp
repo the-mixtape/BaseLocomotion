@@ -160,7 +160,21 @@ void ABSBaseCharacter::CameraRightAction_Implementation(float Value)
 
 void ABSBaseCharacter::JumpAction_Implementation(bool bValue)
 {
-	// TODO: Jump Logic
+	if (bValue)
+	{
+		if (Stance == EBSStance::Standing)
+		{
+			Jump();
+		}
+		else if (Stance == EBSStance::Crouching)
+		{
+			UnCrouch();
+		}
+	}
+	else
+	{
+		StopJumping();
+	}
 }
 
 void ABSBaseCharacter::RunAction_Implementation(bool bValue)
