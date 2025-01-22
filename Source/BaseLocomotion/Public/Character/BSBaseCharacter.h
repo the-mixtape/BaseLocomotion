@@ -175,6 +175,7 @@ protected:
 	void SetMovementModel();
 	void ForceUpdateCharacterState();
 	float CalculateGroundedRotationRate() const;
+	void LimitRotation(float AimYawMin, float AimYawMax, float InterpSpeed, float DeltaTime);
 #pragma endregion
 
 private:
@@ -259,6 +260,13 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "BaseLocomotion|Essential Information")
 	FRotator ReplicatedControlRotation = FRotator::ZeroRotator;
+
+public:
+	UFUNCTION(BlueprintPure, Category = "BaseLocomotion|Essential Information")
+	FRotator GetAimingRotation() const { return AimingRotation; }
+	
+	UFUNCTION(BlueprintGetter, Category = "BaseLocomotion|Essential Information")
+	float GetAimYawRate() const { return AimYawRate; }
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "BaseLocomotion|Movement System")

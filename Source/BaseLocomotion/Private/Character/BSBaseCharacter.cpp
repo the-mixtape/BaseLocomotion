@@ -12,6 +12,7 @@
 namespace
 {
 	const FName NAME_YawOffset(TEXT("YawOffset"));
+	const FName NAME_RotationAmount(TEXT("RotationAmount"));
 }
 
 ABSBaseCharacter::ABSBaseCharacter(const FObjectInitializer& ObjectInitializer)
@@ -411,6 +412,21 @@ float ABSBaseCharacter::CalculateGroundedRotationRate() const
 	return CurveVal * ClampedAimYawRate;
 }
 
+void ABSBaseCharacter::LimitRotation(float AimYawMin, float AimYawMax, float InterpSpeed, float DeltaTime)
+{
+	// Prevent the character from rotating past a certain angle.
+	FRotator Delta = AimingRotation - GetActorRotation();
+	Delta.Normalize();
+	const float RangeVal = Delta.Yaw;
+
+	if (RangeVal < AimYawMin || RangeVal > AimYawMax)
+	{
+		const float ControlRotYaw = AimingRotation.Yaw;
+		const float TargetYaw = ControlRotYaw + (RangeVal > 0.0f ? AimYawMin : AimYawMax);
+		SmoothCharacterRotation({0.0f, TargetYaw, 0.0f}, 0.0f, InterpSpeed, DeltaTime);
+	}
+}
+
 void ABSBaseCharacter::OnGaitChanged(EBSGait PreviousGait)
 {
 	if (CameraBehavior)
@@ -518,27 +534,57 @@ void ABSBaseCharacter::UpdateCharacterMovement()
 void ABSBaseCharacter::UpdateGroundedRotation(float DeltaTime)
 {
 	const bool bCanUpdateMovingRot = ((bIsMoving && bHasMovementInput) || Speed > 150.0f) && !HasAnyRootMotion();
-	if (!bCanUpdateMovingRot) return;
-
-	const float GroundedRotationRate = CalculateGroundedRotationRate();
-	if (RotationMode == EBSRotationMode::VelocityDirection)
+	if (bCanUpdateMovingRot)
 	{
-		// Velocity Direction Rotation
-		SmoothCharacterRotation({0.0f, LastVelocityRotation.Yaw, 0.0f}, 800.0f, GroundedRotationRate,
-		                        DeltaTime);
-	}
-	else if (RotationMode == EBSRotationMode::LookingDirection)
-	{
-		// Looking Direction Rotation
-		const float YawOffsetCurveVal = GetAnimCurveValue(NAME_YawOffset);
-		const float YawValue = AimingRotation.Yaw + YawOffsetCurveVal;
+		const float GroundedRotationRate = CalculateGroundedRotationRate();
+		if (RotationMode == EBSRotationMode::VelocityDirection)
+		{
+			// Velocity Direction Rotation
+			SmoothCharacterRotation({0.0f, LastVelocityRotation.Yaw, 0.0f}, 800.0f, GroundedRotationRate,
+									DeltaTime);
+		}
+		else if (RotationMode == EBSRotationMode::LookingDirection)
+		{
+			// Looking Direction Rotation
+			const float YawOffsetCurveVal = GetAnimCurveValue(NAME_YawOffset);
+			const float YawValue = AimingRotation.Yaw + YawOffsetCurveVal;
 		
-		SmoothCharacterRotation({0.0f, YawValue, 0.0f}, 500.0f, GroundedRotationRate, DeltaTime);
+			SmoothCharacterRotation({0.0f, YawValue, 0.0f}, 500.0f, GroundedRotationRate, DeltaTime);
+		}
+		else if (RotationMode == EBSRotationMode::Aiming)
+		{
+			const float ControlYaw = AimingRotation.Yaw;
+			SmoothCharacterRotation({0.0f, ControlYaw, 0.0f}, 1000.0f, 20.0f, DeltaTime);
+		}
 	}
-	else if (RotationMode == EBSRotationMode::Aiming)
+	else
 	{
-		const float ControlYaw = AimingRotation.Yaw;
-		SmoothCharacterRotation({0.0f, ControlYaw, 0.0f}, 1000.0f, 20.0f, DeltaTime);
+		// Not Moving
+		if (RotationMode == EBSRotationMode::Aiming)
+		{
+			LimitRotation(-100.0f, 100.0f, 20.0f, DeltaTime);
+		}
+
+		// Apply the RotationAmount curve from Turn In Place Animations.
+		// The Rotation Amount curve defines how much rotation should be applied each frame,
+		// and is calculated for animations that are animated at 30fps.
+
+		const float RotAmountCurve = GetAnimCurveValue(NAME_RotationAmount);
+
+		if (FMath::Abs(RotAmountCurve) > 0.001f)
+		{
+			if (GetLocalRole() == ROLE_AutonomousProxy)
+			{
+				TargetRotation.Yaw = UKismetMathLibrary::NormalizeAxis(
+					TargetRotation.Yaw + (RotAmountCurve * (DeltaTime / (1.0f / 30.0f))));
+				SetActorRotation(TargetRotation);
+			}
+			else
+			{
+				AddActorWorldRotation({0, RotAmountCurve * (DeltaTime / (1.0f / 30.0f)), 0});
+			}
+			TargetRotation = GetActorRotation();
+		}
 	}
 }
 
