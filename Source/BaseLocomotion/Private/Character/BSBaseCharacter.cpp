@@ -91,6 +91,9 @@ void ABSBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	DOREPLIFETIME_CONDITION(ThisClass, ReplicatedCurrentAcceleration, COND_SkipOwner);
+	DOREPLIFETIME_CONDITION(ThisClass, ReplicatedControlRotation, COND_SkipOwner);
+	
 	DOREPLIFETIME(ThisClass, DesiredGait);
 	DOREPLIFETIME_CONDITION(ThisClass, DesiredStance, COND_SkipOwner);
 	DOREPLIFETIME_CONDITION(ThisClass, DesiredRotationMode, COND_SkipOwner);
