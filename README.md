@@ -6,6 +6,8 @@
 
 Base Locomotion is a fully network-replicated system designed to provide robust and smooth character movement mechanics. This project focuses on creating a polished base for locomotion that can be extended for various game genres, ensuring seamless multiplayer compatibility.
 
+[Video Preview](https://youtu.be/iSDiAaonTII)
+
 ## Features
 
 - **Starts/Stops**: Smooth transitions when starting or stopping movement.
