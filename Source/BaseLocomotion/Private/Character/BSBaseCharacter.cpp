@@ -352,7 +352,7 @@ ECollisionChannel ABSBaseCharacter::GetThirdPersonTraceParams(FVector& TraceOrig
 {
 	TraceOrigin = GetActorLocation();
 	TraceRadius = 10.0f;
-	return ECC_Visibility;
+	return ECC_Camera;
 }
 
 void ABSBaseCharacter::OnRep_RotationMode(EBSRotationMode PrevRotMode)
