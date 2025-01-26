@@ -23,6 +23,7 @@ namespace
 	const FName NAME_PivotOffset_Y(TEXT("PivotOffset_Y"));
 	const FName NAME_PivotOffset_Z(TEXT("PivotOffset_Z"));
 	const FName NAME_RotationLagSpeed(TEXT("RotationLagSpeed"));
+	const FName NAME_FOV(TEXT("FOV"));
 }
 
 
@@ -117,8 +118,7 @@ bool ABSPlayerCameraManager::CustomCameraBehavior(float DeltaTime, FVector& Loca
 
 	// Step 1: Get Camera Parameters from CharacterBP via the Camera Interface
 	const FTransform& PivotTarget = ControlledCharacter->GetThirdPersonPivotTarget();
-	float TPFOV = 90.0f;
-	ControlledCharacter->GetCameraParameters(TPFOV);
+	const float BehaviorFOV = GetCameraBehaviorParam(NAME_FOV);
 
 	// Step 2: Calculate Target Camera Rotation. Use the Control Rotation and interpolate for smooth camera rotation.
 	TargetCameraRotation = FMath::RInterpTo(GetCameraRotation(),
@@ -186,7 +186,7 @@ bool ABSPlayerCameraManager::CustomCameraBehavior(float DeltaTime, FVector& Loca
 
 	Location = TargetCameraTransform.GetLocation();
 	Rotation = TargetCameraTransform.Rotator();
-	FOV = TPFOV;
+	FOV = BehaviorFOV;
 
 	return true;
 }

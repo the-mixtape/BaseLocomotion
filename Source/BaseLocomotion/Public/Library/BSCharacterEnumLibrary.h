@@ -10,7 +10,7 @@
 /**
  * Character movement state. Note: Also edit related struct in ALSStructEnumLibrary if you add new enums
  */
-UENUM(BlueprintType, meta = (ScriptName = "ALS_MovementState"))
+UENUM(BlueprintType, meta = (ScriptName = "BS_MovementState"))
 enum class EBSMovementState : uint8
 {
 	None,

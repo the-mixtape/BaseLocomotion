@@ -348,11 +348,6 @@ FTransform ABSBaseCharacter::GetThirdPersonPivotTarget()
 	return GetActorTransform();
 }
 
-void ABSBaseCharacter::GetCameraParameters(float& TPFOVOut) const
-{
-	TPFOVOut = ThirdPersonFOV;
-}
-
 ECollisionChannel ABSBaseCharacter::GetThirdPersonTraceParams(FVector& TraceOrigin, float& TraceRadius)
 {
 	TraceOrigin = GetActorLocation();

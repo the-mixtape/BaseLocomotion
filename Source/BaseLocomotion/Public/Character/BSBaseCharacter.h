@@ -31,7 +31,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
-	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode) override;
+	virtual auto OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode) -> void override;
 	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 #pragma region Input
@@ -144,17 +144,11 @@ public:
 	virtual FTransform GetThirdPersonPivotTarget();
 	
 	UFUNCTION(BlueprintCallable, Category = "BaseLocomotion|Camera System")
-	void GetCameraParameters(float& TPFOVOut) const;
-	
-	UFUNCTION(BlueprintCallable, Category = "BaseLocomotion|Camera System")
 	virtual ECollisionChannel GetThirdPersonTraceParams(FVector& TraceOrigin, float& TraceRadius);
 	
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "BaseLocomotion|Camera")
 	TObjectPtr<UBSPlayerCameraBehavior> CameraBehavior;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "BaseLocomotion|Camera System")
-	float ThirdPersonFOV = 90.0f;
 #pragma endregion
 
 #pragma region Replication
@@ -165,7 +159,7 @@ protected:
 
 #pragma region Utility
 public:
-	UFUNCTION(BlueprintCallable, Category = "ALS|Utility")
+	UFUNCTION(BlueprintCallable, Category = "BaseLocomotion|Utility")
 	float GetAnimCurveValue(FName CurveName) const;
 #pragma endregion
 	
